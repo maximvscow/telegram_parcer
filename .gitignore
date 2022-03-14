@@ -1,0 +1,4 @@
+venv/
+.idea/
+channel_messages.json
+session_name.session
