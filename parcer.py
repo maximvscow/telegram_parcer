@@ -75,9 +75,9 @@ async def dump_all_messages(channel):
             full_comments_text = full_comments_text + "/" + text
 
         with open('tg_full_data.csv', 'a', newline='', encoding='utf8') as csvfile:
-            fieldnames = ['id', 'post_text', 'views', 'forwards', 'comments_count', 'comments_text']
+            fieldnames = ['channel_title', 'id', 'post_text', 'views', 'forwards', 'comments_count', 'comments_text']
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-            writer.writerow({'id': message['id'], 'post_text': post_text, 'views': message['views'], 'forwards': message['forwards'], 'comments_count': comments.count, 'comments_text': full_comments_text})
+            writer.writerow({'channel_title': channel.title, 'id': message['id'], 'post_text': post_text, 'views': message['views'], 'forwards': message['forwards'], 'comments_count': comments.count, 'comments_text': full_comments_text})
 
     with open('channel_messages.json', 'w', encoding='utf8') as outfile:
         json.dump(all_messages, outfile, ensure_ascii=False, cls=DateTimeEncoder)
