@@ -6,10 +6,7 @@ from telethon import connection
 
 # для корректного переноса времени сообщений в json
 from datetime import date, datetime
-
-# классы для работы с каналами
-from telethon.tl.functions.channels import GetParticipantsRequest
-from telethon.tl.types import ChannelParticipantsSearch
+import pandas as pd
 
 # класс для работы с сообщениями
 from telethon.tl.functions.messages import GetHistoryRequest
@@ -33,8 +30,8 @@ async def dump_all_messages(channel):
 
     all_messages = []  # список всех сообщений
     total_messages = 0
-    total_count_limit = 1  # поменяйте это значение, если вам нужны не все сообщения
-
+    total_count_limit = 100  # поменяйте это значение, если вам нужны не все сообщения
+    df = pd.DataFrame()
     class DateTimeEncoder(json.JSONEncoder):
 
         def default(self, o):
@@ -62,22 +59,24 @@ async def dump_all_messages(channel):
             break
 
     for message in all_messages:
-        post = message['id']
-        all_comments = []
-        comments = await client(GetRepliesRequest(
-            peer=channel, msg_id=post, limit=100, offset_id=0, offset_date=None, add_offset=0, max_id=0, min_id=0, hash=0))
-        for comment in comments.messages:
-            all_comments.append(comment.to_dict())
-        post_text = message['message']
-        full_comments_text = ""
-        for comment_text in all_comments:
-            text = comment_text['message']
-            full_comments_text = full_comments_text + "/" + text
+        try:
+            post = message['id']
+            all_comments = []
+            comments = await client(GetRepliesRequest(
+                peer=channel, msg_id=post, limit=100, offset_id=0, offset_date=None, add_offset=0, max_id=0, min_id=0, hash=0))
+            for comment in comments.messages:
+                all_comments.append(comment.to_dict())
+            post_text = message['message']
+            full_comments_text = ""
+            for comment_text in all_comments:
+                text = comment_text['message']
+                full_comments_text = full_comments_text + "/" + text
 
-        with open('tg_full_data.csv', 'a', newline='', encoding='utf8') as csvfile:
-            fieldnames = ['channel_title', 'id', 'post_text', 'views', 'forwards', 'comments_count', 'comments_text']
-            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-            writer.writerow({'channel_title': channel.title, 'id': message['id'], 'post_text': post_text, 'views': message['views'], 'forwards': message['forwards'], 'comments_count': comments.count, 'comments_text': full_comments_text})
+            df_dict = {'channel': channel.title, 'id': message['id'], 'post_text': post_text, 'views': message['views'], 'forwards': message['forwards'], 'count': comments.count, 'comments_text': full_comments_text}
+            df = df.append(df_dict, ignore_index=True)
+        except:
+            pass
+    df.to_csv('tg_data.csv', encoding="utf-8")
 
     with open('channel_messages.json', 'w', encoding='utf8') as outfile:
         json.dump(all_messages, outfile, ensure_ascii=False, cls=DateTimeEncoder)
