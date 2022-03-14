@@ -72,7 +72,7 @@ async def dump_all_messages(channel):
         full_comments_text = ""
         for comment_text in all_comments:
             text = comment_text['message']
-            full_comments_text = full_comments_text + "|" + text
+            full_comments_text = full_comments_text + "/" + text
 
         with open('tg_full_data.csv', 'a', newline='', encoding='utf8') as csvfile:
             fieldnames = ['id', 'post_text', 'views', 'forwards', 'comments_count', 'comments_text']
